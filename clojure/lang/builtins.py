@@ -1,6 +1,6 @@
 from clojure.lang.primitives import Obj, BoolObj
 from clojure.lang.list import List, EmptyList
-from clojure.lang.var import Var, push_frame
+from clojure.lang.var import Var, push_frame, Binding
 from clojure.lang.symbol import Symbol
 from clojure.lang.primitives import Obj, IntObj
 
@@ -12,15 +12,20 @@ class UserFn(Obj):
         return self
     def invoke(self, args):
         binds = EmptyList()
+        bs = self._bindings
         for x in range(len(self._bindings)):
-            binds = binds.cons(self._bindings[x], args[x])
+            binds = binds.cons(Binding(bs.first(), args[x]))
+            bs = bs.rest()
         push_frame(binds)
         form = self._forms
         res = None
-        while form is not None:
-            res = form.first().evaluate()
-            form = form.rest()
+        print ">>>->>", len(form)
+        for x in range(len(form)):
+            print ">>> form ", x, form[x]
+            res = form[x].evaluate()
         return res
+    def is_builtin(self):
+        return BoolObj(False)
         
         
 

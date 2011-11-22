@@ -21,10 +21,13 @@ def push_frame(frame):
 def lookup(sym):
     global _frames
     print _named, sym, _frames
+    print len(_frames)
     if len(_frames) != 0:
         h = _frames.first()
-        while h.rest() is not None:
+        while h is not None:
+            print "check ---- ", h.first().k(), sym
             if (h.first().k() == sym):
+                print "resolved", sym
                 return h.first().v()
             h = h.rest()
     return _named[sym]
