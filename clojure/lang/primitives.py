@@ -20,12 +20,10 @@ class BoolObj(Obj):
    def to_str(self):
        return str(self.boolvalue)
    def equals(self, other):
-       from runtime.symbols import IntType, BoolType
-       if other.type() is BoolType:
-           if other.bool_value() == self.bool_value():
-               return BoolObj(True)
-           else:
-               return BoolObj(False)
+       if other.bool_value() == self.bool_value():
+           return BoolObj(True)
+       else:
+           return BoolObj(False)
        return BoolObj(False)
    def evaluate(self):
    	   return self

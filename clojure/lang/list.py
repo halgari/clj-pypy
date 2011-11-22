@@ -1,4 +1,4 @@
-from clojure.lang.primitives import Obj
+from clojure.lang.primitives import Obj, BoolObj
 from clojure.lang.symbol import Symbol
 import sys
 
@@ -74,8 +74,14 @@ class List(Obj):
    	   args = []
    	   h = self.rest()
    	   while h is not None:
-   	   	   args.append(h.first().evaluate())
-   	   	   h = h.rest()
+            v = h.first()
+            if f.is_builtin().bool_value() == True:
+               args.append(v)
+            else:
+               args.append(v.evaluate())
+            h = h.rest()
+            print h
+   	   print "Invoke"
 	   return f.invoke(args) 	   
        
    
@@ -88,3 +94,5 @@ class EmptyList(Obj):
        raise Exception("Can't get rest from empty list")
    def first(self):
        raise Exception("EmptyList")
+   def __len__(self):
+       return 0       

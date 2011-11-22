@@ -37,6 +37,7 @@ class Symbol(Obj):
        return "Sym("+self.value+")"
    def evaluate(self):
    	   from clojure.lang.var import lookup
+   	   print "Eval ----- ", self
    	   return lookup(self).evaluate()
    
 
