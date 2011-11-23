@@ -1,11 +1,11 @@
-(def fibonacci
+(def fibonacci-1
     (fn (x)
-        (fibonacci 0 1 x)))
+        (fibonacci-3 0 1 x)))
 
-(def fibonacci
+(def fibonacci-3
     (fn (current next remaining)
         (if (= 0 remaining)
             current
-            (fibonacci next (+ current next) (- remaining 1)))))
+            (recur next (+ current next) (- remaining 1)))))
 
-(fibonacci 100000)
+(fibonacci-1 100000)

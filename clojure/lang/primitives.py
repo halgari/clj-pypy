@@ -6,6 +6,8 @@ class Obj:
        return StrObj("UnknownObjType")
    def equals(self, other):
        return BoolObj(False)
+   def is_builtin(self):
+   	   return BoolObj(False)
 
 class BoolObj(Obj):
    def __init__(self, value):
@@ -60,13 +62,10 @@ class IntObj(Obj):
        from runtime.symbols import IntType
        return IntType
    def equals(self, other):
-       from runtime.symbols import IntType
-       if other.type() is IntType:
-           if other.int_value() == self.int_value():
-               return BoolObj(True)
-           else:
-               return BoolObj(False)
-       return BoolObj(False)
+	   if other.int_value() == self.int_value():
+		   return BoolObj(True)
+	   else:
+		   return BoolObj(False)
    def evaluate(self):
    	   return self       
    

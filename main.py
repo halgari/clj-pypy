@@ -1,13 +1,19 @@
 from clojure.lang.lispreader import LispReader, LookAheadReader
+from clojure.lang.builtins import *
 from clojure.lang.math import *
 
-rdr = LookAheadReader("(+ 1 2)")
+f = open("scratch-space.clj").read()
+rdr = LookAheadReader(f)
 lisp = LispReader()
 
-term = lisp.read_term(rdr)
+while True:
+	term = lisp.read_term(rdr)
 
-print term
 
-ev = term.evaluate()
-
-print ev
+	if term is None:
+		break
+	print term
+	
+	ev = term.evaluate()
+	
+	print ev

@@ -70,7 +70,6 @@ class List(Obj):
        return " ".join(s)
    def evaluate(self):
    	   f = self.first().evaluate()
-   	   print "f = ", f
    	   args = []
    	   h = self.rest()
    	   while h is not None:
@@ -80,8 +79,6 @@ class List(Obj):
             else:
                args.append(v.evaluate())
             h = h.rest()
-            print h
-   	   print "Invoke"
 	   return f.invoke(args) 	   
        
    
