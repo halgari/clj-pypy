@@ -1,4 +1,4 @@
-from clojure.lang.primitives import Obj, BoolObj
+from clojure.lang.primitives import Obj, BoolObj, IntObj
 from clojure.lang.symbol import Symbol
 import sys
 
@@ -16,7 +16,9 @@ class List(Obj):
        return self.tail
    def first(self):
        return self.head
-   
+   def length(self):
+   	   return IntObj(self.count)
+   	   
    def get_item(self, idx):
        h = self
        for x in range(idx):
@@ -92,4 +94,6 @@ class EmptyList(Obj):
    def first(self):
        raise Exception("EmptyList")
    def __len__(self):
-       return 0       
+       return 0     
+   def length(self):
+   	   return IntObj(0)    	   

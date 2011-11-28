@@ -71,7 +71,7 @@ class LispReader:
        
        while reader.current() in _whitespace:
            reader.next()
-           if not reader.has_more:
+           if not reader.has_more():
                return None
        
        cur = reader.current()

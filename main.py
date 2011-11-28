@@ -12,7 +12,6 @@ while True:
 
 	if term is None:
 		break
-	print term
 	
 	ev = term.evaluate()
 	

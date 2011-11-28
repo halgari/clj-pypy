@@ -8,6 +8,8 @@ class Obj:
        return BoolObj(False)
    def is_builtin(self):
    	   return BoolObj(False)
+   def __len__(self):
+   	   return 0	   	   
 
 class BoolObj(Obj):
    def __init__(self, value):

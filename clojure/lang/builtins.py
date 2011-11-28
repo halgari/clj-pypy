@@ -4,7 +4,13 @@ from clojure.lang.var import Var, push_frame, Binding, pop_frame
 from clojure.lang.symbol import Symbol
 from clojure.lang.primitives import Obj, IntObj
 
-_inrecur = None
+class RecurInfo(Obj):
+	def set_recur(self, recur):
+		self._inrecur = recur
+	def get_recur(self):
+		return self._inrecur
+
+_RecurInfo = RecurInfo()
 
 class UserFn(Obj):
     def __init__(self, bindings, forms):
@@ -13,20 +19,19 @@ class UserFn(Obj):
     def evaluate(self):
         return self
     def invoke(self, args):
-    	global _inrecur
     	res = None
     	while True:
     		res = self.inner_invoke(args)
-    		if _inrecur is not None:
-    			args = _inrecur
+    		if _RecurInfo.get_recur() is not None:
+    			args = _RecurInfo.get_recur()
     		else:
     			break
-    		_inrecur = None
+    		_RecurInfo.set_recur(None)
     	return res		
     def inner_invoke(self, args):
         binds = EmptyList()
         bs = self._bindings
-        for x in range(len(self._bindings)):
+        for x in range(self._bindings.length().int_value()):
             binds = binds.cons(Binding(bs.first(), args[x]))
             bs = bs.rest()
         push_frame(binds)
@@ -86,11 +91,10 @@ class Recur(Obj):
 	def evaluate(self):
 		return self
 	def invoke(self, args):
-		global _inrecur
 		nlist = []
 		for x in range(len(args)):
 			nlist.append(args[x].evaluate())
-		_inrecur = nlist
+		_RecurInfo.set_recur(nlist)
 		return None
   
 recur = Var(Symbol.from_string("recur"), Recur())  
