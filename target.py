@@ -8,6 +8,10 @@ sys.path.append('/home/tim/pypy')
 
 from pypy.rlib.streamio import open_file_as_stream
 
+def jitpolicy(driver):
+    from pypy.jit.codewriter.policy import JitPolicy
+    return JitPolicy()
+
 def entry_point(argv):
 	if len(argv) == 2:
 		print "running" , argv[1]

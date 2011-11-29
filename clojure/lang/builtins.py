@@ -3,8 +3,11 @@ from clojure.lang.list import List, EmptyList
 from clojure.lang.var import Var, push_frame, Binding, pop_frame
 from clojure.lang.symbol import Symbol
 from clojure.lang.primitives import Obj, IntObj
+from clojure.lang.afn import AFn
 
 class RecurInfo(Obj):
+	def __init__(self):
+		self._inrecur = None
 	def set_recur(self, recur):
 		self._inrecur = recur
 	def get_recur(self):
@@ -18,7 +21,7 @@ class UserFn(Obj):
         self._forms = forms
     def evaluate(self):
         return self
-    def invoke(self, args):
+    def apply(self, args):
     	res = None
     	while True:
     		res = self.inner_invoke(args)
@@ -32,13 +35,13 @@ class UserFn(Obj):
         binds = EmptyList()
         bs = self._bindings
         for x in range(self._bindings.length().int_value()):
-            binds = binds.cons(Binding(bs.first(), args[x]))
-            bs = bs.rest()
+			binds = binds.cons(Binding(bs.first(), args.first().evaluate()))
+			args = args.rest()
+			bs = bs.rest()
         push_frame(binds)
         form = self._forms
         res = None
-        for x in range(len(form)):
-            res = form[x].evaluate()
+        res = form.evaluate()
         pop_frame()
         return res
     def is_builtin(self):
@@ -46,41 +49,39 @@ class UserFn(Obj):
         
         
 
-class Fn(Obj):
+class Fn(AFn):
     def __init__(self):
         pass
     def is_builtin(self):
         return BoolObj(True)
     def evaluate(self):
         return self
-    def invoke(self, args):
-        return UserFn(args[0], args[1:])
+    def invoke2(self, arg0, arg1):
+        return UserFn(arg0, arg1)
         
-class If(Obj):
+class If(AFn):
 	def __init__(self):
 		pass
 	def is_builtin(self):
 		return BoolObj(True)
 	def evaluate(self):
 		return self
-	def invoke(self, args):
-		res = args[0].evaluate().bool_value()
+	def invoke3(self, arg0, arg1, arg2):
+		res = arg0.evaluate().bool_value()
 		if res:
-			return args[1].evaluate()
-		if len(args) == 2:
-			return None
-		return args[2].evaluate()
+			return arg1.evaluate()
+		return arg2.evaluate()
 		
-class Def(Obj):
+class Def(AFn):
 	def __init__(self):
 		pass
 	def is_builtin(self):
 		return BoolObj(True)
 	def evaluate(self):
 		return self
-	def invoke(self, args):
-		val = args[1].evaluate()
-		return Var(args[0], val)
+	def invoke2(self, arg0, arg1):
+		val = arg1.evaluate()
+		return Var(arg0, val)
 
 
 class Recur(Obj):
@@ -90,11 +91,12 @@ class Recur(Obj):
 		return BoolObj(True)
 	def evaluate(self):
 		return self
-	def invoke(self, args):
+	def apply(self, args):
 		nlist = []
-		for x in range(len(args)):
-			nlist.append(args[x].evaluate())
-		_RecurInfo.set_recur(nlist)
+		while args is not None:
+			nlist.append(args.first().evaluate())
+			args = args.rest()
+		_RecurInfo.set_recur(List.from_list(nlist))
 		return None
   
 recur = Var(Symbol.from_string("recur"), Recur())  

@@ -1,7 +1,8 @@
 from clojure.lang.primitives import Obj, BoolObj, IntObj
 from clojure.lang.symbol import Symbol
-import sys
+from clojure.lang.afn import AFn
 
+import sys
 
 class List(Obj):
    def __init__(self, head, tail = None, count = 1):
@@ -66,22 +67,19 @@ class List(Obj):
        s.append("(")
        h = self
        while h is not None:
-           s.append(str(h.head))
+           s.append(h.head.__repr__())
            h = h.rest()
        s.append(")")
        return " ".join(s)
    def evaluate(self):
+   	   from clojure.jit.jit import jitdriver
+   	   from clojure.lang.var import _Globals
+   	   jitdriver.jit_merge_point(form = self, frames = _Globals._frames )
    	   f = self.first().evaluate()
    	   args = []
    	   h = self.rest()
-   	   while h is not None:
-            v = h.first()
-            if f.is_builtin().bool_value() == True:
-               args.append(v)
-            else:
-               args.append(v.evaluate())
-            h = h.rest()
-	   return f.invoke(args) 	   
+   	   return f.apply(h)
+       
        
    
 class EmptyList(Obj):
@@ -97,3 +95,16 @@ class EmptyList(Obj):
        return 0     
    def length(self):
    	   return IntObj(0)    	   
+   	   
+   	   
+class Cons_List(AFn):
+	def invoke2(self, x, lst):
+		return lst.cons(x)
+		
+
+def init_vars():
+	from clojure.lang.var import Var
+	conslist = Var(Symbol.from_string("cons_list*"), Cons_List())
+	
+init_vars()
+	
