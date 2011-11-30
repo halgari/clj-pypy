@@ -1,10 +1,9 @@
+import sys
+sys.path.append('/home/tim/pypy')
+
 from clojure.lang.lispreader import LispReader, LookAheadReader
 from clojure.lang.builtins import *
 from clojure.lang.math import *
-import sys
-
-
-sys.path.append('/home/tim/pypy')
 
 from pypy.rlib.streamio import open_file_as_stream
 

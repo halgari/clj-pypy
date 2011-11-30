@@ -1,3 +1,5 @@
+from pypy.rlib import jit
+
 class Obj:
    """Base object all other object in PhaLinks inherit this"""
    def __init__(self):
@@ -39,8 +41,8 @@ class AppendDictObj(Obj):
     def get(self, sym):
         return DictObj._static_get(sym)
         
-    @purefunction
     @staticmethod
+    @jit.elidable
     def _static_get(d, sym):
         if sym in d:
             return d[sym]
@@ -49,7 +51,7 @@ class AppendDictObj(Obj):
     def assoc(self, sym, value):
         self.dict = self.dict.copy()[sym] = value
 
-@purefunction
+@jit.elidable
 def boolean(v):
     return BoolObj(v)
     

@@ -1,3 +1,4 @@
+from pypy.rlib import jit
 from primitives import Obj, StrObj
 
 _symbols = {}
@@ -18,7 +19,7 @@ class Symbol(Obj):
        self.value = value
    
    @staticmethod
-   @purefunction
+   @jit.elidable
    def intern(value):
        var = intern(value.str_value())
        if var in _symbols:
@@ -28,7 +29,7 @@ class Symbol(Obj):
        return sym
    
    @staticmethod
-   @purefunction
+   @jit.elidable
    def from_string(str):
        return Symbol.intern(StrObj(str))
    
@@ -41,7 +42,7 @@ class Symbol(Obj):
    	   from clojure.lang.var import lookup
    	   return lookup(self).evaluate()
 
-@purefunction
+@jit.elidable
 def sym(str):
     return Symbol.from_string(str)
     

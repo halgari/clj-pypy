@@ -1,5 +1,6 @@
 import string
 
+
 class CodeGeneratorBackend:
 	def begin(self, tab="\t"):
 		self.code = []

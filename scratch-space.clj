@@ -8,4 +8,4 @@
             current
             (recur next (+ current next) (- remaining 1)))))
 
-(fibonacci-1 10000000)
+(fibonacci-1 1000000)
