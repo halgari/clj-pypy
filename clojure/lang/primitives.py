@@ -31,6 +31,30 @@ class BoolObj(Obj):
        return BoolObj(False)
    def evaluate(self):
    	   return self
+   	   
+class AppendDictObj(Obj):
+    def __init__(self, init):
+        self.dict = init
+        
+    def get(self, sym):
+        return DictObj._static_get(sym)
+        
+    @purefunction
+    @staticmethod
+    def _static_get(d, sym):
+        if sym in d:
+            return d[sym]
+        return None
+            
+    def assoc(self, sym, value):
+        self.dict = self.dict.copy()[sym] = value
+
+@purefunction
+def boolean(v):
+    return BoolObj(v)
+    
+BoolFalse = boolean(False)
+BoolTrue = boolean(True)
        
 class TypeObj(Obj):
    def __init__(self, value):

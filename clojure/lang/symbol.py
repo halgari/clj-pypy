@@ -18,6 +18,7 @@ class Symbol(Obj):
        self.value = value
    
    @staticmethod
+   @purefunction
    def intern(value):
        var = intern(value.str_value())
        if var in _symbols:
@@ -27,6 +28,7 @@ class Symbol(Obj):
        return sym
    
    @staticmethod
+   @purefunction
    def from_string(str):
        return Symbol.intern(StrObj(str))
    
@@ -38,6 +40,9 @@ class Symbol(Obj):
    def evaluate(self):
    	   from clojure.lang.var import lookup
    	   return lookup(self).evaluate()
-   
 
+@purefunction
+def sym(str):
+    return Symbol.from_string(str)
+    
 SymbolType = Symbol.from_string("SymbolType")
