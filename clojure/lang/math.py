@@ -35,3 +35,12 @@ class Equals(AFn):
 eq = Var(Symbol.from_string("="), Equals())
 
 
+from clojure.lang.wrapfn import wrapfn
+
+def println(o):
+	print o
+
+exec wrapfn("println", println)
+
+from clojure.lang.var import _Globals
+print _Globals.get_named()

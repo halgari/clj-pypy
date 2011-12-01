@@ -19,13 +19,22 @@ class CodeGeneratorBackend:
 		if self.level == 0:
 			raise SyntaxError, "internal error in code generator"
 		self.level = self.level - 1
-		
 
-def gen_invoke(cg, argc):
-	arglist = ["self"]
+def get_arglist(argc, prefix):
+	if prefix == None:
+		arglist = []
+	else:
+		arglist = [prefix]
+		
 	for x in range(argc):
 		arglist.append("arg"+str(x))
-	cg.writeln("def invoke" + str(argc)+"(" + ", ".join(arglist) +"):")
+	return "(" + ", ".join(arglist) +")"	
+
+def get_invokedef(argc):		
+	return "def invoke" + str(argc)+get_arglist(argc, "self") + ":"
+
+def gen_invoke(cg, argc):
+	cg.writeln(get_invokedef(argc))
 	cg.indent()
 	cg.writeln("raise Exception('bad arity ' + str(" + str(argc)+"))")
 	cg.dedent()
@@ -72,6 +81,83 @@ def gen_afn(max_count = 20):
 	f.write(res)
 	return res
 	
+def gen_overload(cg, argc):
+	cg.writeln(get_invokedef(argc))
+	cg.indent()
+	cg.writeln("if "+str(argc)+" in self.fns:")
+	cg.indent()
+	cg.writeln("AFn.invoke"+str(argc)+get_arglist(argc, "self"))
+	cg.dedent()
+	cg.writeln("elif -1 in self.fns:")
+	cg.indent()
+	args = []
+	for x in range(argc):
+		args.append("arg"+str(x))
+	cg.writeln("AFn.apply(self, List.from_list(["+",".join(args)+"]))")
+	cg.dedent()
+	cg.writeln("else:")
+	cg.indent()
+	cg.writeln("raise Exception(\"No overload for "+str(argc)+"\")")
+	cg.dedent()
+	cg.dedent()
+	
+	
+def gen_overloadfn(max_count = 20):
+	cg = CodeGeneratorBackend()
+	cg.begin()
+	cg.writeln("from clojure.lang.afn_gen import AFn")
+	cg.writeln("class OverloadedFn(AFn):")
+	cg.indent()
+	cg.writeln("_immutable_fields_ = ['fns']")
+	cg.writeln("def __init__(self, fns):")
+	cg.indent()
+	cg.writeln("self.fns = fns")
+	cg.dedent()
+	for x in range(max_count):
+		gen_overload(cg, x)
+	f = open("clojure/lang/overloadfn_gen.py", "w")
+	f.write(cg.end())
+	f.close()
+	
+def gen_polymorph(cg, argc):
+	cg.writeln(get_invokedef(argc))
+	cg.indent()
+	cg.writeln("tp = arg0.type()")
+	cg.writeln("if tp in self.dispatches:")
+	cg.indent()
+	cg.writeln("self.dispatches[tp].invoke"+str(argc)+get_arglist(argc, None))
+	cg.dedent()
+	cg.writeln("else:")
+	cg.indent()
+	cg.writeln("raise Exception(\"No polymorph for \" + tp.__repr__())")
+	cg.dedent()
+	cg.dedent()	
+	
+def gen_polymorphicfn(max_count = 20):
+	cg = CodeGeneratorBackend()
+	cg.begin()
+	cg.writeln("from clojure.lang.afn_gen import AFn")
+	cg.writeln("class PolymorphicFn(AFn):")
+	cg.indent()
+	cg.writeln("def __init__(self):")
+	cg.indent()
+	cg.writeln("self.dispatches = {}")
+	cg.dedent()
+	cg.writeln("def add(self, tp, fn):")
+	cg.indent()
+	cg.writeln("self.dispatches[tp] = fn")
+	for x in range(1, max_count):
+		gen_polymorph(cg, x)
+	f = open("clojure/lang/polymorphic_gen.py", "w")
+	f.write(cg.end())
+	f.close()
+
+	
 gen_afn()
+gen_overloadfn()
+gen_polymorphicfn()
+
 from clojure.lang.afn_gen import AFn
+from clojure.lang.overloadfn_gen import OverloadedFn
+from clojure.lang.polymorphic_gen import PolymorphicFn
 

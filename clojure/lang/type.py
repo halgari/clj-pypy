@@ -2,53 +2,30 @@
 from clojure.lang.internal_atom import InternalAtom
 from clojure.lang.symbol import sym
 
-class Type(Obj):
-	_immutable_fields_ = ["fields", "name"]
-	def __init__(self, name, fields, fns, protocols):
-		fields.append(Symbol.intern("meta"))
-		self.fields = fields
+
+class TypeDef:
+	def __init__(self, name):
 		self.name = name
-		self.fns = InternalAtom(fns)
-		self.protocols = InternalAtom(protocols)
-	
-	def extend(self, name, fn):
-	    dr = self.fns.deref()
-	    if name in dr:
-	        raise Exception("fn " + name.__repr__() + "already implemented")
-	    self.fns.set(lambda o: o[name] = fn)
-
-    
-    def extends(self, name)
-        proto = self.protocols.deref()
-        Type._static_extends(proto, name)
-    
-    @staticmethod
-    @purefunction
-    def _static_extends(proto, name):
-        if name not in proto:
-            return BoolFalse
-        return BoolTrue
- 
-    def get_fn(self, name):
-        Type._static_get_fn(name, self.fns.deref())
-        
-    @staticmethod
-    @purefunction
-    def _static_get_fn(name, fns):
-        if name not in fns:
-            return None
-        return fns[name]
-
-	@purefunction
-	def field_count(self):
-		return self.fields
+	def name():
+		return self.name
+	def __repr__(self):
+		return "TypeDef<"+self.name.__repr__()+">"
 		
-	@purefunction
-	def field_offset(self, sym):
-		for x in range(len(self.fields)):
-			if fields[x] == sym:
-				return x
-				
+		
+class Protocol(Obj):
+	def __init__(self, name, fns):
+		Var(name, self)
+		self.implementors = {}
+	def add_implementor(self, tp):
+		self.implementors[tp] = tp
+	def implements(self, obj)
+		from clojure.lang.primitives import BoolTrue, BoolFalse
+		if obj.type() in self.implementors:
+			return BoolTrue
+		return BoolFalse
+	
+		
+
 class Record(Obj):
 	_immutable_fields_ = ["tp", "vals"]
 	def __init__(self, tp, vals = None):
