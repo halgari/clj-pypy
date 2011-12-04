@@ -402,10 +402,10 @@ the type of the first argument
 def gen_polymorph(cg, argc):
     cg.writeln(get_invoke_def(argc))
     cg.indent()
-    cg.writeln("tp = arg0.type()")
+    cg.writeln("tp = arg0.typedef()")
     cg.writeln("if tp in self.dispatches:")
     cg.indent()
-    cg.writeln("self.dispatches[tp].invoke"+str(argc)+get_arg_list(argc, nil))
+    cg.writeln("return self.dispatches[tp].invoke"+str(argc)+get_arg_list(argc, nil))
     cg.dedent()
     cg.writeln("else:")
     cg.indent()
@@ -424,6 +424,7 @@ def gen_polymorphic_fn(max_count = 20):
     cg.writeln("def add(self, tp, fn):")
     cg.indent()
     cg.writeln("self.dispatches[tp] = fn")
+    cg.dedent()
     for x in range(1, max_count):
         gen_polymorph(cg, x)
     return cg.end()
@@ -518,16 +519,100 @@ def wrapfn(name, fn):
     cg = CodeGenerator()
     cg.writeln("class _WrapClass_" + str(ccount) + "(AFn):")
     cg.indent()
+    cg.writeln("def __init__(self):")
+    cg.indent()
+    cg.writeln("AFn.__init__(self)")
+    cg.dedent()
     argc = len(inspect.getargspec(fn).args)
     cg.writeln(get_invoke_def(argc))
     cg.indent()
-    cg.writeln(fn.__name__ + get_arg_list(argc, nil))
+    cg.writeln("return " + fn.__name__ + get_arg_list(argc, nil))
     cg.dedent()
     cg.dedent()
     cg.writeln("Var(sym(\""+name+"\"), _WrapClass_"+str(ccount)+"())")
     return cg.end()
 
-def println(x):
-    print x
 
-exec wrapfn("println", println)
+class Protocol(Obj):
+	def __init__(self, name, fns):
+		Var(name, self)
+		self.implementors = {}
+	def add_implementor(self, tp):
+		self.implementors[tp] = tp
+	def implements(self, obj):
+		if obj.type() in self.implementors:
+			return true
+		return false
+
+
+
+def protocol(name, funcs):
+    Protocol(sym(name), funcs)
+    for x in range(len(funcs)):
+        Var(sym(funcs[x]), PolymorphicFn())
+
+def extend(polymorph, type, fn):
+    poly = lookup(sym(polymorph))
+    poly.add(type, fn)
+
+
+
+protocol("ISeqable", ["seq"])
+protocol("ISeq", ["first", "rest"])
+
+
+def seq(obj):
+    return lookup(sym("seq")).invoke1(obj)
+
+def first(obj):
+    return lookup(sym("first")).invoke1(obj)
+
+def rest(obj):
+    return lookup(sym("rest")).invoke1(obj)
+
+class Array(Obj):
+    _type = TypeDef("Array")
+    def __init__(self, array):
+        Obj.__init__(self)
+        self.array = array
+    def typedef(self):
+        return Array._type
+
+class ArraySeq(Obj):
+    _type = TypeDef("ArraySeq")
+    def __init__(self, array, idx):
+        Obj.__init__(self)
+        self.idx = idx
+        self.array = array
+    def typedef(self):
+        return ArraySeq._type
+
+def ArraySeq_first(arr):
+    return arr.array[arr.idx]
+
+def ArraySeq_rest(arr):
+    if arr.idx + 1 >= len(arr.array):
+        return nil
+    return ArraySeq(arr.array, arr.idx + 1)
+
+def Array_seq(arr):
+    return ArraySeq(arr.array, 0)
+
+x = wrapfn("array-seq", Array_seq)
+exec x
+exec wrapfn("first-arrayseq", ArraySeq_first)
+exec wrapfn("rest-arrayseq", ArraySeq_rest)
+
+
+extend("seq", Array._type, lookup(sym("array-seq")))
+extend("first", ArraySeq._type, lookup(sym("first-arrayseq")))
+extend("rest", ArraySeq._type, lookup(sym("rest-arrayseq")))
+
+
+v = Array([1, 2, 3, 4, 5])
+
+s = seq(v)
+
+while s is not nil:
+    print first(s)
+    s = rest(s)
